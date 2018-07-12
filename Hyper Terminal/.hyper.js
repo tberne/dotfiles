@@ -104,7 +104,7 @@ module.exports = {
     shellArgs: ['--login', '-i'],
 
     // for environment variables
-    env: {},
+    env: { TERM: 'cygwin'},
 
     // set to `false` for no bell
     bell: 'SOUND',
