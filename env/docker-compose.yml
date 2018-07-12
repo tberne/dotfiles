@@ -1,0 +1,33 @@
+version: "2.4"
+services:
+  db:
+    image: mysql:8.0
+    ports:
+    - 3306:3306
+    environment:
+    - MYSQL_ROOT_PASSWORD=lumis
+    - MYSQL_DATABASE=lumisportal
+    - MYSQL_USER=lumis
+    - MYSQL_PASSWORD=lumis
+    volumes:
+    - /c/Lumis/trunk/env/mysql-data:/var/lib/mysql
+    mem_limit: 500M
+    command: --max-connections=2000 --max-allowed-packet=256M --default-authentication-plugin=mysql_native_password
+  elasticsearch:
+    build: elasticsearch-build
+    ports:
+    - 9200:9200
+    - 9300:9300
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    environment:
+    - bootstrap.memory_lock=true
+    - ES_JAVA_OPTS=-Xms400m -Xmx400m -XX:MaxMetaspaceSize=300m
+    volumes:
+    - /c/Lumis/trunk/env/elasticsearch-data:/usr/share/elasticsearch/data
+  kibana:
+    build: kibana-build
+    ports:
+    - 5601:5601
