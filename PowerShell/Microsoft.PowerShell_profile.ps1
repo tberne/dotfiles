@@ -128,6 +128,9 @@ function prompt {
 	$Reset = "${esc}[0m"
 
 	# Cores (ajuste para seu gosto)
+	$UserNaneFG = "0"
+	$UserNameBG = "15"
+
 	$PathFG = "15"
 	$PathBG = "32"
 	$GitFG = "0"
@@ -140,6 +143,9 @@ function prompt {
 
 	$cwd = $(Get-Location)
 	$msg = "`n"
+
+	$userName = [System.Environment]::UserName
+	$msg += Get-TagStr -tag "👤 $userName " -fgColor $UserNaneFG -bgColor $UserNameBG -sepLeft "$CircBlockSepL" -sepRight "$CircBlockSepR`n"
 	$msg += Get-TagStr -tag "📁 $cwd " -fgColor $PathFG -bgColor $PathBG -sepLeft "$CircBlockSepL" -sepRight "$CircBlockSepR"
 
 	# GIT Info
