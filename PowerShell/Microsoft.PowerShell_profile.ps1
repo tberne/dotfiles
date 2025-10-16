@@ -20,6 +20,84 @@ function Test-GitRepository {
 	return $false
 }
 
+function Test-JSRoot {
+	$currentPath = Get-Location
+
+	if (Test-Path (Join-Path $currentPath 'package.json')) {
+		return $true
+	}
+
+	return $false
+}
+
+function Test-DockerRoot {
+	$currentPath = Get-Location
+
+	if (Test-Path (Join-Path $currentPath 'Dockerfile')) {
+		return $true
+	}
+
+	if (Test-Path (Join-Path $currentPath 'docker-compose.yml')) {
+		return $true
+	}
+
+	return $false
+}
+
+function Test-JavaRoot {
+	$currentPath = Get-Location
+
+	if (Test-Path (Join-Path $currentPath 'pom.xml')) {
+		return $true
+	}
+
+	if (Test-Path (Join-Path $currentPath 'build.gradle')) {
+		return $true
+	}
+
+	return $false
+}
+
+function Get-JSBadge {
+	if (Test-JSRoot) {
+		$jsBadgeColor = switch (Test-Path (Join-Path (Get-Location) 'node_modules')) {
+			$true { "11" } # Amarelo se node_modules existe
+			$false { "196" } # Vermelho se node_modules não existe
+		}
+		$msg = Get-TagStr -tag "JS" -fgColor "0" -bgColor $jsBadgeColor -sepLeft "" -sepRight ""
+		$msg += " "
+		return $msg
+		# return ""
+	}
+	return ""
+}
+
+function Get-DockerBadge {
+	if (Test-DockerRoot) {
+		$dockerBadgeColor = "15"
+		# $dockerIcon = ""
+		$dockerIcon = "🐋"
+
+		$msg = Get-TagStr -tag "$dockerIcon " -fgColor "0" -bgColor $dockerBadgeColor -sepLeft "" -sepRight ""
+		$msg += " "
+		return $msg
+	}
+	return ""
+}
+
+function Get-JavaBadge {
+	if (Test-JavaRoot) {
+		$javaBadgeColor = "55"
+		# $javaIcon = ""
+		$javaIcon = "☕"
+
+		$msg = Get-TagStr -tag "$javaIcon " -fgColor "0" -bgColor $javaBadgeColor -sepLeft "" -sepRight ""
+		$msg += " "
+		return $msg
+	}
+	return ""
+}
+
 function Get-TagStr {
 	param(
 		[string]$tag,
@@ -82,6 +160,10 @@ function prompt {
 		$msg += Get-TagStr -tag "  $branch " -fgColor $GitFG -bgColor $branchColor -sepLeft $BlockSepL -sepRight $BlockSepR
 	}
 
-	$msg += "`n$PromptFG❯ $Reset"
+	$msg += "`n"
+	$msg += Get-JSBadge
+	$msg += Get-DockerBadge
+	$msg += Get-JavaBadge
+	$msg += "$PromptFG❯ $Reset"
 	return $msg
 }
