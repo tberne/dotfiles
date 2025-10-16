@@ -20,27 +20,47 @@ function Test-GitRepository {
 	return $false
 }
 
+function Get-TagStr {
+	param(
+		[string]$tag,
+		[string]$fgColor,
+		[string]$bgColor,
+		[string]$sepLeft,
+		[string]$sepRight
+	)
+	$esc = [char]27
+	$Reset = "${esc}[0m"
+
+	$FGToken = "${esc}[38;5"
+	$BGToken = "${esc}[48;5"
+
+	$fg = "$FGToken;${fgColor}m"
+	$bg = "$BGToken;${bgColor}m"
+
+	$sepFG = "$FGToken;${bgColor}m"
+
+	return "$sepFG$sepLeft$fg$bg$tag$Reset$sepFG$sepRight$Reset"
+}
+
+
 function prompt {
 	$esc = [char]27
 	$Reset = "${esc}[0m"
 
 	# Cores (ajuste para seu gosto)
-	$PathBG = "${esc}[48;5;32m"   # Verde escuro de fundo
-	$PathFG = "${esc}[38;5;231m"  # Branco para texto
-	$GitBG = "${esc}[48;5;52m"  # Rosa de fundo
-	$GitFG = "${esc}[38;5;15m"  # Amarelo para git branch
-	$ArrowFG = "${esc}[38;5;32m"   # Verde para setas
-	$PromptFG = "${esc}[38;5;46m"   # Verde limão para ">"
-	$GitArrowFG = "${esc}[38;5;52m" # Rosa para setas do git
+	$PathFG = "15"
+	$PathBG = "32"
+	$GitFG = "0"
+	$PromptFG = "${esc}[38;5;46m"
     
-	$BlockSepL = "" # precise usar Nerd Font! Ou troque para >
-	$BlockSepR = "" # precise usar Nerd Font! Ou troque para <
-	$CircBlockSepL = "" # precise usar Nerd Font! Ou troque para >
-	$CircBlockSepR = "" # precise usar Nerd Font! Ou troque para <
+	$BlockSepR = "" # precise usar Nerd Font! Ou troque para >
+	$BlockSepL = "" # precise usar Nerd Font! Ou troque para <
+	$CircBlockSepR = "" # precise usar Nerd Font! Ou troque para >
+	$CircBlockSepL = "" # precise usar Nerd Font! Ou troque para <
 
 	$cwd = $(Get-Location)
-	# $msg = "`n$PathBG$PathFG 📁 $cwd $Reset$ArrowFG$BlockSepL$Reset"
-	$msg = "`n$ArrowFG$CircBlockSepR$Reset$PathBG$PathFG📁 $cwd $Reset$ArrowFG$CircBlockSepL$Reset"
+	$msg = "`n"
+	$msg += Get-TagStr -tag "📁 $cwd " -fgColor $PathFG -bgColor $PathBG -sepLeft "$CircBlockSepL" -sepRight "$CircBlockSepR"
 
 	# GIT Info
 	$isGit = Test-GitRepository
@@ -49,7 +69,17 @@ function prompt {
 	}
 	if ($isGit) {
 		$branch = git rev-parse --abbrev-ref HEAD 2>$null
-		$msg += " $GitArrowFG$BlockSepR$GitBG$GitFG  $branch $Reset$GitArrowFG$BlockSepL$Reset"
+		$branchColor = switch -Wildcard ($branch) {
+			"master" { "11" }
+			"main" { "11" }
+			"develop" { "11" }
+			"feature/*" { "49" }
+			"release/*" { "196" }
+			Default { "250" }
+		}
+
+		$msg += " "
+		$msg += Get-TagStr -tag "  $branch " -fgColor $GitFG -bgColor $branchColor -sepLeft $BlockSepL -sepRight $BlockSepR
 	}
 
 	$msg += "`n$PromptFG❯ $Reset"
