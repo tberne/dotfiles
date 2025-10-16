@@ -1,48 +1,57 @@
-function Make-Diff() {
-	param(
-		[Parameter(Mandatory)]
-		[string] $ChangeList,
+function LL {
+	Get-ChildItem | Select-Object -Property Name, Directory, Length, LastWriteTime | Sort-Object -Property LastWriteTime -Descending
+}
 
-		[Parameter(Mandatory)]
-		[string] $Issue,
+# Alias Docker to Podman
+function Docker {
+	podman @args
+}
 
-		[string] $Dir
-	)
+function Test-GitRepository {
+	$currentPath = Get-Location
 
-	if($Dir -eq "") {
-		$Dir = $Issue
-	}
-
-	$FilePath = "C:\Users\tberne\OneDrive\Documentos\Issues\$Dir\$Issue.diff"
-	
-	if(-not(Test-Path "C:\Users\tberne\OneDrive\Documentos\Issues\$Dir")) {
-		New-Item -Type Directory -Path "C:\Users\tberne\OneDrive\Documentos\Issues\$Dir" | Out-Null
-	}
-	else {
-		if(-not (Test-Path "C:\Users\tberne\OneDrive\Documentos\Issues\$Dir" -PathType Container)) {
-			throw "ERRO! 'C:\Users\tberne\OneDrive\Documentos\Issues\$Dir' existe e nao e um diretorio!"
+	while ($null -ne $currentPath) {
+		if (Test-Path (Join-Path $currentPath '.git')) {
+			return $true
 		}
+		$currentPath = $currentPath.Parent
 	}
 
-	Push-Location -Path C:\Lumis\trunk\svnroot\Lumis_PortalJava
-	svn diff --cl $ChangeList > $FilePath
-	Pop-Location
-
-	Invoke-Item -Path "C:\Users\tberne\OneDrive\Documentos\Issues\$Dir"
+	return $false
 }
 
-function Mvn() {
-	C:\Apps\apache-maven-3.9.6\bin\mvn.cmd @args
-}
+function prompt {
+	$esc = [char]27
+	$Reset = "${esc}[0m"
 
-function Python2() {
-	C:\Python27\python.exe @args
-}
+	# Cores (ajuste para seu gosto)
+	$PathBG = "${esc}[48;5;32m"   # Verde escuro de fundo
+	$PathFG = "${esc}[38;5;231m"  # Branco para texto
+	$GitBG = "${esc}[48;5;52m"  # Rosa de fundo
+	$GitFG = "${esc}[38;5;15m"  # Amarelo para git branch
+	$ArrowFG = "${esc}[38;5;32m"   # Verde para setas
+	$PromptFG = "${esc}[38;5;46m"   # Verde limão para ">"
+	$GitArrowFG = "${esc}[38;5;52m" # Rosa para setas do git
+    
+	$BlockSepL = "" # precise usar Nerd Font! Ou troque para >
+	$BlockSepR = "" # precise usar Nerd Font! Ou troque para <
+	$CircBlockSepL = "" # precise usar Nerd Font! Ou troque para >
+	$CircBlockSepR = "" # precise usar Nerd Font! Ou troque para <
 
-function Svn-Merge() {
-	Python2 C:\Apps\svnmerge\svnmerge.py @args
-}
+	$cwd = $(Get-Location)
+	# $msg = "`n$PathBG$PathFG 📁 $cwd $Reset$ArrowFG$BlockSepL$Reset"
+	$msg = "`n$ArrowFG$CircBlockSepR$Reset$PathBG$PathFG📁 $cwd $Reset$ArrowFG$CircBlockSepL$Reset"
 
-function ll() {
-	Get-ChildItem @args
+	# GIT Info
+	$isGit = Test-GitRepository
+	if ($isGit) {
+		$isGit = (git rev-parse --is-inside-work-tree 2>$null) -eq "true"
+	}
+	if ($isGit) {
+		$branch = git rev-parse --abbrev-ref HEAD 2>$null
+		$msg += " $GitArrowFG$BlockSepR$GitBG$GitFG  $branch $Reset$GitArrowFG$BlockSepL$Reset"
+	}
+
+	$msg += "`n$PromptFG❯ $Reset"
+	return $msg
 }

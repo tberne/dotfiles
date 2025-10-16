@@ -1,4 +1,0 @@
-- Vetur
-- SVN
-- Docker
-- Material Icon Theme

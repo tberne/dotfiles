@@ -1,2 +1,2 @@
 # Local do arquivo
-Colocar essa pasta em `<user>\Documents`.
+Colocar essa pasta em `<user>\Documents\PowerShell`.
