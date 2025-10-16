@@ -2,19 +2,21 @@ function LL {
 	Get-ChildItem | Select-Object -Property Name, Directory, Length, LastWriteTime | Sort-Object -Property LastWriteTime -Descending
 }
 
-# Alias Docker to Podman
-function Docker {
-	podman @args
-}
-
 function Test-GitRepository {
 	$currentPath = Get-Location
 
 	while ($null -ne $currentPath) {
-		if (Test-Path (Join-Path $currentPath '.git')) {
+		$gitFolder = Join-Path $currentPath '.git'
+		$gitFolderExists = Test-Path $gitFolder
+		if ($gitFolderExists) {
 			return $true
 		}
-		$currentPath = $currentPath.Parent
+
+		$lastPath = $currentPath
+		$currentPath = Join-Path -Resolve $currentPath '..'
+		if ($currentPath -eq $lastPath) {
+			break
+		}
 	}
 
 	return $false
